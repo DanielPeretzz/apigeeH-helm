@@ -1,0 +1,140 @@
+instanceID: bnhp-test
+namespace: apigee # Usually "apigee"
+
+gcp:
+  projectID: bnhp-apigeeh-poc
+  region: me-west1
+
+k8sCluster:
+  name: apigee-hybrid
+  region: eu-central-1 # Closest Google Cloud region to your cluster.
+
+org: bnhp-apigeeh-poc
+
+# Required for Enhanced per-environment proxy limits:
+enhanceProxyLimits: true
+
+# Required if using data residency with hybrid:
+#contractProvider: https://CONTROL_PLANE_LOCATION-apigee.googleapis.com
+
+envs:
+- name: test-poc
+  serviceAccountPaths:
+    # Provide the path relative to the apigee-env chart directory.
+    synchronizer: bnhp-apigeeh-poc-apigee-non-prod.json
+      # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+    runtime: bnhp-apigeeh-poc-apigee-non-prod.json
+      # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+- name: dev-poc
+  serviceAccountPaths:
+    # Provide the path relative to the apigee-env chart directory.
+    synchronizer: bnhp-apigeeh-poc-apigee-non-prod.json
+      # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+    runtime: bnhp-apigeeh-poc-apigee-non-prod.json
+      # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+cassandra:
+  hostNetwork: false
+    # Set to false for single region installations and  for multi-region
+    # installations with connectivity between pods in different clusters,
+    # like GKE.
+    # Set to true for multi-region installations with no communication
+    # between pods in different clusters, for example Google Distributed
+    # Cloud on VMware or bare metal, GKE on AWS, AKS, EKS, and OpenShift.
+    # See Multi-region deployment: Prerequisites
+  replicaCount: 3
+    # Use 1 for non-prod installations and multiples of 3 for production.
+    # See Configure Cassandra for production for guidelines.
+  storage:
+    storageClass: "apigee-sc"
+    storageSize: 10Gi
+
+ingressGateways:
+- name: apigee-ingress # maximum 17 characters.
+  replicaCountMin: 2
+  replicaCountMax: 10
+  svcType: ClusterIP
+    #svcAnnotations:  # optional. If you are on AKS, see Known issue #260772383
+    #SVC_ANNOTATIONS_KEY: SVC_ANNOTATIONS_VALU
+- name: dev-ingress
+  replicaCountMin: 2
+  replicaCountMax: 10
+  svcType: ClusterIP
+
+virtualhosts:
+- name: test-poc-group
+  selector:
+    app: apigee-ingressgateway
+    ingress_name: apigee-ingress
+  sslCertPath: ./certs/keystore_test-poc1.pem
+  sslKeyPath: ./certs/keystore_test-poc1.key
+- name: dev-poc-group
+  selector:
+    app: apigee-ingressgateway
+    ingress_name: dev-ingress
+  sslCertPath: ./certs/keystore_test-poc1.pem
+  sslKeyPath: ./certs/keystore_test-poc1.key
+
+
+guardrails:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-operator chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+mart:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-org chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+connectAgent:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Use the same service account for mart and connectAgent
+    # Provide the path relative to the apigee-org chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+logger:
+  enabled: true
+    # enabled by default
+    # See apigee-logger in Service accounts and roles used by hybrid components.
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-F chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+metrics:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-telemetry chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+watcher:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-telemetry chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+# Required if using Monetization for Apigee hybrid (v1.15.1 and later)
+runtime:
+  image:
+    url: "gcr.io/apigee-release/hybrid/apigee-runtime"
+    tag: "1.16.0" # Must be 1.15.1 or higher.
+
+mintTaskScheduler: # Required for Monetization for Apigee hybrid
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+    # Provide the path relative to the apigee-org chart directory.
+    # For example: "bnhp-apigeeh-poc-apigee-non-prod.json"
+
+# If using message payloads larger than 10MB.
+# See configure large message payload support:
+runtime:
+  cwcAppend:
+    bin_setenv_max_mem: 4096m   # Increase max heap size to 4 gigs
+  resources:
+    requests:
+      memory: 4Gi
+    limits:
+      memory: 6Gi
+nodeSelector:
+  requiredForScheduling: true
+  apigeeRuntime:
+    key: "name"
+    value: "apigee-runtime"
+  apigeeData:
+    key: "name"
+    value: "apigee-data"
