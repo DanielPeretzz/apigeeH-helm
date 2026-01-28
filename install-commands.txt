@@ -1,0 +1,19 @@
+helm install operator apigee-operator/ -n apigee -f overrides-org.yaml
+
+helm install datastore apigee-datastore/ -n apigee -f overrides-org.yaml
+
+helm install telemetry apigee-telemetry/ -n apigee -f overrides-org.yaml
+
+helm install redis apigee-redis/ -n apigee -f overrides-org.yaml
+
+helm install ingress-manager apigee-ingress-manager/ -n apigee -f overrides-org.yaml
+
+helm install bnhp-apigeeh-poc apigee-org/ -n apigee -f overrides-org.yaml
+
+helm install dev-poc apigee-env/ -n apigee --set env=dev-poc -f overrides-dev.yaml
+
+helm install test-poc apigee-env/ -n apigee --set env=test-poc -f overrides-test.yaml
+
+helm install dev-poc-group apigee-virtualhost/ -n apigee --set envgroup=dev-poc-group -f overrides-dev.yaml
+
+helm install test-poc-group apigee-virtualhost/ -n apigee --set envgroup=test-poc-group -f overrides-test.yaml
