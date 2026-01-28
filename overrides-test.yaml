@@ -1,0 +1,108 @@
+instanceID: bnhp-test
+namespace: apigee
+
+gcp:
+  projectID: bnhp-apigeeh-poc
+  region: me-west1
+
+k8sCluster:
+  name: apigee-hybrid
+  region: eu-central-1
+
+org: bnhp-apigeeh-poc
+
+enhanceProxyLimits: true
+
+nodeSelector:
+  requiredForScheduling: true
+  apigeeRuntime:
+    key: "name"
+    value: "apigee-runtime"
+  apigeeData:
+    key: "name"
+    value: "apigee-data"
+
+envs:
+- name: test-poc
+  serviceAccountPaths:
+    synchronizer: bnhp-apigeeh-poc-apigee-non-prod.json
+    runtime: bnhp-apigeeh-poc-apigee-non-prod.json
+
+cassandra:
+  hostNetwork: true
+  replicaCount: 3
+  storage:
+    storageClass: "apigee-sc"
+    storageSize: 10Gi
+  nodeSelector:
+    key: "name"
+    value: "apigee-data"
+
+ingressGateways:
+- name: apigee-ingress
+  replicaCountMin: 2
+  replicaCountMax: 10
+  svcType: ClusterIP
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+virtualhosts:
+- name: test-poc-group
+  selector:
+    app: apigee-ingressgateway
+    ingress_name: apigee-ingress
+  sslCertPath: ./certs/keystore_test-poc1.pem
+  sslKeyPath: ./certs/keystore_test-poc1.key
+
+guardrails:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+
+mart:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+connectAgent:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+logger:
+  enabled: true
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+metrics:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+watcher:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+runtime:
+  image:
+    url: "gcr.io/apigee-release/hybrid/apigee-runtime"
+    tag: "1.16.0"
+  cwcAppend:
+    bin_setenv_max_mem: 4096m
+  resources:
+    requests:
+      memory: 4Gi
+    limits:
+      memory: 6Gi
+
+mintTaskScheduler:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"

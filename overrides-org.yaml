@@ -1,0 +1,89 @@
+instanceID: bnhp-test
+namespace: apigee
+
+gcp:
+  projectID: bnhp-apigeeh-poc
+  region: me-west1
+
+k8sCluster:
+  name: apigee-hybrid
+  region: eu-central-1
+
+org: bnhp-apigeeh-poc
+
+enhanceProxyLimits: true
+
+nodeSelector:
+  requiredForScheduling: true
+  apigeeRuntime:
+    key: "name"
+    value: "apigee-runtime"
+  apigeeData:
+    key: "name"
+    value: "apigee-data"
+
+cassandra:
+  hostNetwork: true
+  replicaCount: 3
+  storage:
+    storageClass: "apigee-sc"
+    storageSize: 10Gi
+  nodeSelector:
+    key: "name"
+    value: "apigee-data"
+
+ingressGateways:
+- name: apigee-ingress
+  replicaCountMin: 2
+  replicaCountMax: 10
+  svcType: ClusterIP
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+- name: dev-ingress
+  replicaCountMin: 2
+  replicaCountMax: 10
+  svcType: ClusterIP
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+guardrails:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+
+mart:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+connectAgent:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+logger:
+  enabled: true
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+metrics:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+watcher:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
+
+mintTaskScheduler:
+  serviceAccountPath: bnhp-apigeeh-poc-apigee-non-prod.json
+  nodeSelector:
+    key: "name"
+    value: "apigee-runtime"
